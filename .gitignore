@@ -1,0 +1,6 @@
+# Working dir
+elm-stuff/
+
+# Build output
+elm.js
+index.html
