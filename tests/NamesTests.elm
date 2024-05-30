@@ -1,8 +1,8 @@
 module NamesTests exposing (suite)
 
-import Names exposing (Filter(..), matchingAll, check)
 import Expect
 import Fuzz exposing (stringOfLength, stringOfLengthBetween)
+import Names exposing (Filter(..), check, matchingAll)
 import Test exposing (Test, describe, fuzz)
 
 
@@ -51,6 +51,12 @@ suite =
             ]
         ]
 
+
+
+-- Utils
+
+
+assertError : a -> Result a value -> Expect.Expectation
 assertError expectedError actual =
     case actual of
         Err err ->
@@ -59,26 +65,50 @@ assertError expectedError actual =
         _ ->
             Expect.fail "Expecting error but got ok"
 
+
+
+-- Fuzzers
+
+
+shortNames : Fuzz.Fuzzer String
 shortNames =
     stringOfLengthBetween 0 3
 
+
+namesOfFour : Fuzz.Fuzzer String
 namesOfFour =
     stringOfLength 4
 
+
+longNames : Fuzz.Fuzzer String
 longNames =
     stringOfLengthBetween 5 20
 
+
+namesStartingWithA : Fuzz.Fuzzer String
 namesStartingWithA =
     stringOfLength 4 |> Fuzz.map (String.append "A")
 
+
+namesStartingWithB : Fuzz.Fuzzer String
 namesStartingWithB =
     stringOfLength 4 |> Fuzz.map (String.append "B")
 
+
+
+-- Filters
+
+
+lengthAtLeastFour : Filter
 lengthAtLeastFour =
     MinLength 4
 
+
+lengthAtMostFour : Filter
 lengthAtMostFour =
     MaxLength 4
 
+
+startsWithA : Filter
 startsWithA =
     StartsWith "A"
