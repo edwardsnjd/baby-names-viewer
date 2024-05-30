@@ -49,6 +49,14 @@ suite =
             , fuzz namesStartingWithB "rejects B..." <|
                 \str -> matchingAll [ startsWithA ] [ str ] |> Expect.equal []
             ]
+        , describe "matchingAll fuzzing"
+            [ fuzz rangeOfNames "can limit min length" <|
+                \strs -> matchingAll [ lengthAtLeastFour ] strs |> assertAll (isAtLeast 4)
+            , fuzz rangeOfNames "can limit max length" <|
+                \strs -> matchingAll [ lengthAtMostFour ] strs |> assertAll (isAtMost 4)
+            , fuzz rangeOfNames "can target length" <|
+                \strs -> matchingAll [ lengthAtLeastFour, lengthAtMostFour ] strs |> assertAll (isExactly 4)
+            ]
         ]
 
 
@@ -64,6 +72,67 @@ assertError expectedError actual =
 
         _ ->
             Expect.fail "Expecting error but got ok"
+
+
+assertAll : (a -> Result String Bool) -> List a -> Expect.Expectation
+assertAll predicate values =
+    let
+        failures =
+            List.map predicate values |> List.filterMap toError
+    in
+    if List.length failures == 0 then
+        Expect.pass
+
+    else
+        Expect.fail (String.join "\n" failures)
+
+
+
+-- Misc
+
+
+toError : Result a value -> Maybe a
+toError result =
+    case result of
+        Err err ->
+            Just err
+
+        _ ->
+            Nothing
+
+
+
+-- Predicates
+
+
+isAtLeast : Int -> String -> Result String Bool
+isAtLeast length =
+    buildCheck
+        (\str -> String.length str >= length)
+        (\str -> "Was not longer than " ++ String.fromInt length ++ ": '" ++ str ++ "'")
+
+
+isAtMost : Int -> String -> Result String Bool
+isAtMost length =
+    buildCheck
+        (\str -> String.length str <= length)
+        (\str -> "Was longer than " ++ String.fromInt length ++ ": '" ++ str ++ "'")
+
+
+isExactly : Int -> String -> Result String Bool
+isExactly length =
+    buildCheck
+        (\str -> String.length str == length)
+        (\str -> "Length was not exactly " ++ String.fromInt length ++ ": '" ++ str ++ "'")
+
+
+buildCheck : (c -> Bool) -> (c -> a) -> c -> Result a Bool
+buildCheck pred toErr str =
+    if pred str then
+        Ok True
+
+    else
+        Err (toErr str)
 
 
 
@@ -93,6 +162,11 @@ namesStartingWithA =
 namesStartingWithB : Fuzz.Fuzzer String
 namesStartingWithB =
     stringOfLength 4 |> Fuzz.map (String.append "B")
+
+
+rangeOfNames : Fuzz.Fuzzer (List String)
+rangeOfNames =
+    Fuzz.list Fuzz.string
 
 
 

@@ -1,5 +1,7 @@
 module Names exposing (Filter(..), Name, check, matchingAll)
 
+import Utils exposing (isOk)
+
 
 type alias Name =
     String
@@ -61,17 +63,3 @@ check filter name =
 
             else
                 Err "Name did not start with right prefix"
-
-
-
-{- Test if the given result is ok or a failure. -}
-
-
-isOk : FilterResult -> Bool
-isOk result =
-    case result of
-        Ok _ ->
-            True
-
-        _ ->
-            False
