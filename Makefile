@@ -7,7 +7,7 @@ MAKEFLAGS += --no-builtin-rules
 
 SRC_DIR := src
 ELM_FILES := $(shell find . -type f -name "*.elm")
-SRC_FILE := $(SRC_DIR)/HomePage.elm
+SRC_FILE := $(SRC_DIR)/Main.elm
 
 HTML_FILE := index.html
 OUTPUT_FILE := elm.js
