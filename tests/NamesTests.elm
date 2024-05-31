@@ -166,8 +166,7 @@ namesStartingWithB =
 
 rangeOfNames : Fuzz.Fuzzer (List String)
 rangeOfNames =
-    Fuzz.list Fuzz.string
-
+    Fuzz.list (Fuzz.stringOfLengthBetween 0 20)
 
 
 -- Filters
