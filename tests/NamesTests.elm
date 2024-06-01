@@ -26,12 +26,6 @@ suite =
                 , fuzz longNames "rejects > 4" <|
                     \str -> check lengthAtMostFour str |> assertError "Name was too long"
                 ]
-            , describe "StartsWith A"
-                [ fuzz namesStartingWithA "accepts A..." <|
-                    \str -> check startsWithA str |> Expect.ok
-                , fuzz namesStartingWithB "rejects B..." <|
-                    \str -> check startsWithA str |> assertError "Name did not start with right prefix"
-                ]
             , describe "StartsWithOneOf A"
                 [ fuzz namesStartingWithA "accepts A..." <|
                     \str -> check startsWithOneOfA str |> Expect.ok
@@ -71,9 +65,9 @@ suite =
             , fuzz longNames "rejects > 4" <|
                 \str -> matchingAll [ lengthAtMostFour ] [ str ] |> Expect.equal []
             , fuzz namesStartingWithA "accepts A..." <|
-                \str -> matchingAll [ startsWithA ] [ str ] |> Expect.equal [ str ]
+                \str -> matchingAll [ startsWithOneOfA ] [ str ] |> Expect.equal [ str ]
             , fuzz namesStartingWithB "rejects B..." <|
-                \str -> matchingAll [ startsWithA ] [ str ] |> Expect.equal []
+                \str -> matchingAll [ startsWithOneOfA ] [ str ] |> Expect.equal []
             ]
         , describe "matchingAll fuzzing"
             [ fuzz rangeOfNames "can limit min length" <|
@@ -91,6 +85,38 @@ suite =
                     \_ -> toFilters " " |> Expect.equal []
                 , test "spaces maps to empty list" <|
                     \_ -> toFilters "     " |> Expect.equal []
+                ]
+            , describe "min:???"
+                [ test "empty" <|
+                    \_ -> toFilters "min:" |> Expect.equal []
+                , test "space after prefix" <|
+                    \_ -> toFilters "min: " |> Expect.equal []
+                , test "space before term" <|
+                    \_ -> toFilters "min: 3" |> Expect.equal []
+                , test "letter" <|
+                    \_ -> toFilters "min:A" |> Expect.equal []
+                , test "floating point" <|
+                    \_ -> toFilters "min:1.2" |> Expect.equal []
+                , test "integer" <|
+                    \_ -> toFilters "min:42" |> Expect.equal [ MinLength 42 ]
+                , test "trailing space" <|
+                    \_ -> toFilters "min:42 " |> Expect.equal [ MinLength 42 ]
+                ]
+            , describe "max:???"
+                [ test "empty" <|
+                    \_ -> toFilters "max:" |> Expect.equal []
+                , test "space after prefix" <|
+                    \_ -> toFilters "max: " |> Expect.equal []
+                , test "space before term" <|
+                    \_ -> toFilters "max: 3" |> Expect.equal []
+                , test "letter" <|
+                    \_ -> toFilters "max:A" |> Expect.equal []
+                , test "floating point" <|
+                    \_ -> toFilters "max:1.2" |> Expect.equal []
+                , test "integer" <|
+                    \_ -> toFilters "max:42" |> Expect.equal [ MaxLength 42 ]
+                , test "trailing space" <|
+                    \_ -> toFilters "max:42 " |> Expect.equal [ MaxLength 42 ]
                 ]
             , describe "startswith:???"
                 [ test "empty" <|
@@ -261,11 +287,6 @@ lengthAtLeastFour =
 lengthAtMostFour : Filter
 lengthAtMostFour =
     MaxLength 4
-
-
-startsWithA : Filter
-startsWithA =
-    StartsWith "A"
 
 
 startsWithOneOfA : Filter

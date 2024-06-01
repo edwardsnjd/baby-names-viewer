@@ -4,7 +4,7 @@ import BoysNames exposing (all)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Names exposing (Filter(..), Name, matchingAll, toFilters)
+import Names exposing (Filter(..), Name, StringSpec(..), matchingAll, toFilters)
 
 
 type alias Model =
@@ -66,10 +66,39 @@ view model =
                 ]
                 []
             ]
-        , div []
-            [ "Filters: " ++ (List.length model.filters |> String.fromInt) |> text ]
+        , div [] [ text "Filters: " ]
+        , ul [] (List.map viewFilter model.filters)
         , div []
             [ "Names: " ++ (List.length model.matching |> String.fromInt) ++ " of " ++ (List.length model.all |> String.fromInt) |> text ]
         , textarea [ style "height" "50vh" ]
             [ String.join "\n" model.matching |> text ]
         ]
+
+
+viewFilter : Filter -> Html Msg
+viewFilter filter =
+    let
+        label =
+            case filter of
+                MinLength min ->
+                    "Min length: " ++ String.fromInt min
+
+                MaxLength max ->
+                    "Max length: " ++ String.fromInt max
+
+                StartsWithOneOf specs ->
+                    let
+                        toLabel spec =
+                            case spec of
+                                Simple str ->
+                                    str
+
+                                Range from to ->
+                                    from ++ " to " ++ to
+
+                        specLabels =
+                            List.map toLabel specs
+                    in
+                    "Starts with one of: " ++ String.join ", OR " specLabels
+    in
+    li [] [ text label ]

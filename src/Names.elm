@@ -14,7 +14,6 @@ type alias FilterResult =
 type Filter
     = MinLength Int
     | MaxLength Int
-    | StartsWith String
     | StartsWithOneOf (List StringSpec)
 
 
@@ -38,11 +37,29 @@ toFilters query =
 toFilter : String -> Maybe Filter
 toFilter term =
     case String.split ":" term of
+        [ "min", t ] ->
+            toMinLength t
+
+        [ "max", t ] ->
+            toMaxLength t
+
         [ "startswith", t ] ->
             toStartsWithOneOf t
 
         _ ->
             Nothing
+
+
+toMinLength : String -> Maybe Filter
+toMinLength term =
+    String.toInt term
+        |> Maybe.map MinLength
+
+
+toMaxLength : String -> Maybe Filter
+toMaxLength term =
+    String.toInt term
+        |> Maybe.map MaxLength
 
 
 toStartsWithOneOf : String -> Maybe Filter
@@ -119,13 +136,6 @@ check filter name =
 
             else
                 Err "Name was too long"
-
-        StartsWith str ->
-            if String.startsWith str name then
-                Ok name
-
-            else
-                Err "Name did not start with right prefix"
 
         StartsWithOneOf specs ->
             let
