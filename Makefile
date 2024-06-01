@@ -10,13 +10,10 @@ ELM_FILES := $(shell find . -type f -name "*.elm")
 SRC_FILE := $(SRC_DIR)/Main.elm
 
 HTML_FILE := index.html
-OUTPUT_FILE := elm.js
 
 # Targets
 
-$(HTML_FILE): $(OUTPUT_FILE)
-
-$(OUTPUT_FILE): $(ELM_FILES)
+$(HTML_FILE): $(ELM_FILES)
 	elm make $(SRC_FILE)
 
 # Convenience targets
