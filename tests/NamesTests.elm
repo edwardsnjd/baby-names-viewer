@@ -2,7 +2,7 @@ module NamesTests exposing (suite)
 
 import Expect
 import Fuzz exposing (stringOfLength, stringOfLengthBetween)
-import Names exposing (Filter(..), check, matchingAll)
+import Names exposing (Filter(..), StringSpec(..), check, matchingAll)
 import Test exposing (Test, describe, fuzz)
 
 
@@ -31,6 +31,32 @@ suite =
                     \str -> check startsWithA str |> Expect.ok
                 , fuzz namesStartingWithB "rejects B..." <|
                     \str -> check startsWithA str |> assertError "Name did not start with right prefix"
+                ]
+            , describe "StartsWithOneOf A"
+                [ fuzz namesStartingWithA "accepts A..." <|
+                    \str -> check startsWithOneOfA str |> Expect.ok
+                , fuzz namesStartingWithB "rejects B..." <|
+                    \str -> check startsWithOneOfA str |> assertError "Name did not start with right prefix"
+                ]
+            , describe "StartsWithOneOf A or C"
+                [ fuzz namesStartingWithA "accepts A..." <|
+                    \str -> check startsWithOneOfAorC str |> Expect.ok
+                , fuzz namesStartingWithB "rejects B..." <|
+                    \str -> check startsWithOneOfAorC str |> assertError "Name did not start with right prefix"
+                , fuzz namesStartingWithC "accepts C..." <|
+                    \str -> check startsWithOneOfAorC str |> Expect.ok
+                , fuzz namesStartingWithD "rejects D..." <|
+                    \str -> check startsWithOneOfAorC str |> assertError "Name did not start with right prefix"
+                ]
+            , describe "StartsWithOneOf A to C"
+                [ fuzz namesStartingWithA "accepts A..." <|
+                    \str -> check startsWithOneOfAtoC str |> Expect.ok
+                , fuzz namesStartingWithB "accepts B..." <|
+                    \str -> check startsWithOneOfAtoC str |> Expect.ok
+                , fuzz namesStartingWithC "accepts C..." <|
+                    \str -> check startsWithOneOfAtoC str |> Expect.ok
+                , fuzz namesStartingWithD "rejects D..." <|
+                    \str -> check startsWithOneOfAtoC str |> assertError "Name did not start with right prefix"
                 ]
             ]
         , describe "matchingAll"
@@ -154,19 +180,35 @@ longNames =
     stringOfLengthBetween 5 20
 
 
+namesStartingWith : String -> Fuzz.Fuzzer String
+namesStartingWith prefix =
+    stringOfLength 4 |> Fuzz.map (String.append prefix)
+
+
 namesStartingWithA : Fuzz.Fuzzer String
 namesStartingWithA =
-    stringOfLength 4 |> Fuzz.map (String.append "A")
+    namesStartingWith "A"
 
 
 namesStartingWithB : Fuzz.Fuzzer String
 namesStartingWithB =
-    stringOfLength 4 |> Fuzz.map (String.append "B")
+    namesStartingWith "B"
+
+
+namesStartingWithC : Fuzz.Fuzzer String
+namesStartingWithC =
+    namesStartingWith "C"
+
+
+namesStartingWithD : Fuzz.Fuzzer String
+namesStartingWithD =
+    namesStartingWith "D"
 
 
 rangeOfNames : Fuzz.Fuzzer (List String)
 rangeOfNames =
     Fuzz.list (Fuzz.stringOfLengthBetween 0 20)
+
 
 
 -- Filters
@@ -185,3 +227,18 @@ lengthAtMostFour =
 startsWithA : Filter
 startsWithA =
     StartsWith "A"
+
+
+startsWithOneOfA : Filter
+startsWithOneOfA =
+    StartsWithOneOf [ Simple "A" ]
+
+
+startsWithOneOfAorC : Filter
+startsWithOneOfAorC =
+    StartsWithOneOf [ Simple "A", Simple "C" ]
+
+
+startsWithOneOfAtoC : Filter
+startsWithOneOfAtoC =
+    StartsWithOneOf [ Range "A" "C" ]

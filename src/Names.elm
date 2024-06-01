@@ -1,4 +1,4 @@
-module Names exposing (Filter(..), Name, check, matchingAll, toFilters)
+module Names exposing (Filter(..), Name, StringSpec(..), check, matchingAll, toFilters)
 
 import Utils exposing (isOk)
 
@@ -15,6 +15,12 @@ type Filter
     = MinLength Int
     | MaxLength Int
     | StartsWith String
+    | StartsWithOneOf (List StringSpec)
+
+
+type StringSpec
+    = Simple String
+    | Range String String
 
 
 
@@ -68,6 +74,28 @@ check filter name =
 
         StartsWith str ->
             if String.startsWith str name then
+                Ok name
+
+            else
+                Err "Name did not start with right prefix"
+
+        StartsWithOneOf specs ->
+            let
+                -- NOTE: This is accepts ANY of the given prefixes
+                anyPrefixMatches =
+                    List.any
+                        (\spec ->
+                            case spec of
+                                Simple str ->
+                                    String.startsWith str name
+
+                                Range from to ->
+                                    -- NOTE: Can't simply compare because longer strings sort after prefix
+                                    from <= name && String.slice 0 (String.length to) name <= to
+                        )
+                        specs
+            in
+            if anyPrefixMatches then
                 Ok name
 
             else
