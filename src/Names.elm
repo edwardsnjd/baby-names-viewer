@@ -27,18 +27,31 @@ type StringSpec
 {- Parse query to list of filters -}
 
 
-toFilters : String -> List (Result String Filter)
+toFilters : String -> List Filter
 toFilters query =
-    let
-        trimmed =
-            String.trim query
-    in
-    case String.length trimmed of
-        0 ->
-            []
+    query
+        |> String.trim
+        |> String.words
+        |> List.filterMap toFilter
+
+
+toFilter : String -> Maybe Filter
+toFilter term =
+    case String.split ":" term of
+        [ "startswith", t ] ->
+            toStartsWithOneOf t
 
         _ ->
-            [ Ok (StartsWithOneOf [ Simple trimmed ]) ]
+            Nothing
+
+
+toStartsWithOneOf : String -> Maybe Filter
+toStartsWithOneOf term =
+    if String.length term == 0 then
+        Nothing
+
+    else
+        Just (StartsWithOneOf [ Simple term ])
 
 
 

@@ -39,7 +39,6 @@ update msg model =
                     let
                         filters =
                             toFilters query
-                                |> List.filterMap Result.toMaybe
                     in
                     { model
                         | query = query

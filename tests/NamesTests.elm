@@ -91,12 +91,18 @@ suite =
                     \_ -> toFilters " " |> Expect.equal []
                 , test "spaces maps to empty list" <|
                     \_ -> toFilters "     " |> Expect.equal []
-                , test "single character maps to starts with" <|
-                    \_ -> toFilters "A" |> List.filterMap Result.toMaybe |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
-                , test "leading space before single character maps to starts with" <|
-                    \_ -> toFilters " A" |> List.filterMap Result.toMaybe |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
-                , test "trailing space after single character maps to starts with" <|
-                    \_ -> toFilters "A " |> List.filterMap Result.toMaybe |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
+                ]
+            , describe "startswith:???"
+                [ test "empty" <|
+                    \_ -> toFilters "startswith:" |> Expect.equal []
+                , test "space after prefix" <|
+                    \_ -> toFilters "startswith: " |> Expect.equal []
+                , test "space before term" <|
+                    \_ -> toFilters "startswith: A" |> Expect.equal []
+                , test "single character" <|
+                    \_ -> toFilters "startswith:A" |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
+                , test "trailing space" <|
+                    \_ -> toFilters "startswith:A " |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
                 ]
             ]
         ]
