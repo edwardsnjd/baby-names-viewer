@@ -134,6 +134,12 @@ suite =
                 , test "range" <|
                     \_ -> toFilters "startswith:A-C" |> Expect.equal [ StartsWithOneOf [ Range "A" "C" ] ]
                 ]
+            , describe "combinations"
+                [ test "min, max, then start" <|
+                    \_ -> toFilters "min:4 max:10 startswith:A" |> Expect.equal [ MinLength 4, MaxLength 10, StartsWithOneOf [ Simple "A" ] ]
+                , test "start, min, then max" <|
+                    \_ -> toFilters "startswith:A min:4 max:10" |> Expect.equal [ StartsWithOneOf [ Simple "A" ], MinLength 4, MaxLength 10 ]
+                ]
             ]
         ]
 
