@@ -47,11 +47,37 @@ toFilter term =
 
 toStartsWithOneOf : String -> Maybe Filter
 toStartsWithOneOf term =
-    if String.length term == 0 then
+    let
+        specs =
+            String.split "," term |> List.filterMap toSpec
+    in
+    if List.length specs == 0 then
         Nothing
 
     else
-        Just (StartsWithOneOf [ Simple term ])
+        Just (StartsWithOneOf specs)
+
+
+toSpec : String -> Maybe StringSpec
+toSpec str =
+    case String.split "-" str of
+        [ "" ] ->
+            Nothing
+
+        [ s ] ->
+            Just (Simple s)
+
+        [ "", _ ] ->
+            Nothing
+
+        [ _, "" ] ->
+            Nothing
+
+        [ from, to ] ->
+            Just (Range from to)
+
+        _ ->
+            Nothing
 
 
 

@@ -103,6 +103,10 @@ suite =
                     \_ -> toFilters "startswith:A" |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
                 , test "trailing space" <|
                     \_ -> toFilters "startswith:A " |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
+                , test "pair" <|
+                    \_ -> toFilters "startswith:A,C" |> Expect.equal [ StartsWithOneOf [ Simple "A", Simple "C" ] ]
+                , test "range" <|
+                    \_ -> toFilters "startswith:A-C" |> Expect.equal [ StartsWithOneOf [ Range "A" "C" ] ]
                 ]
             ]
         ]
