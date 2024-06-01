@@ -29,7 +29,16 @@ type StringSpec
 
 toFilters : String -> List (Result String Filter)
 toFilters query =
-    [ Ok (StartsWith query) ]
+    let
+        trimmed =
+            String.trim query
+    in
+    case String.length trimmed of
+        0 ->
+            []
+
+        _ ->
+            [ Ok (StartsWith trimmed) ]
 
 
 

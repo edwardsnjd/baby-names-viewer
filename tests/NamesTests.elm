@@ -2,8 +2,8 @@ module NamesTests exposing (suite)
 
 import Expect
 import Fuzz exposing (stringOfLength, stringOfLengthBetween)
-import Names exposing (Filter(..), StringSpec(..), check, matchingAll)
-import Test exposing (Test, describe, fuzz)
+import Names exposing (Filter(..), StringSpec(..), check, matchingAll, toFilters)
+import Test exposing (Test, describe, fuzz, test)
 
 
 suite : Test
@@ -83,6 +83,12 @@ suite =
             , fuzz rangeOfNames "can target length" <|
                 \strs -> matchingAll [ lengthAtLeastFour, lengthAtMostFour ] strs |> assertAll (isExactly 4)
             ]
+        , describe "toFilters"
+            [ test "ignores leading trailing whitespace" <|
+                \t -> List.map toFilters [ "", " ", "         " ]
+                    |> List.map (List.filterMap Result.toMaybe)
+                    |> assertAll2 (\l -> List.length l == 0) "Did not work"
+            ]
         ]
 
 
@@ -111,6 +117,20 @@ assertAll predicate values =
 
     else
         Expect.fail (String.join "\n" failures)
+
+
+
+assertAll2 : (a -> Bool) -> String -> List a -> Expect.Expectation
+assertAll2 predicate msg values =
+    let
+        failures =
+            List.filter (\v -> predicate v |> not) values
+    in
+    if List.length failures == 0 then
+        Expect.pass
+
+    else
+        Expect.fail msg
 
 
 
