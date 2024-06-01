@@ -4,7 +4,7 @@ import BoysNames exposing (all)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Names exposing (Filter(..), Name, matchingAll)
+import Names exposing (Filter(..), Name, matchingAll, toFilters)
 
 
 type alias Model =
@@ -39,6 +39,7 @@ update msg model =
                     let
                         filters =
                             toFilters query
+                                |> List.filterMap Result.toMaybe
                     in
                     { model
                         | query = query
@@ -47,11 +48,6 @@ update msg model =
                     }
     in
     ( updated, Cmd.none )
-
-
-toFilters : String -> List Filter
-toFilters query =
-    [ StartsWith query ]
 
 
 
@@ -67,10 +63,14 @@ view model =
                 [ type_ "text"
                 , value model.query
                 , onInput UpdateQuery
+                , style "font-size" "2em"
                 ]
                 []
             ]
-        , div [] [ "Filters: " ++ (List.length model.filters |> String.fromInt) |> text ]
-        , div [] [ "Names: " ++ (List.length model.matching |> String.fromInt) ++ " of " ++ (List.length model.all |> String.fromInt) |> text ]
-        , textarea [] [ String.join "\n" model.matching |> text ]
+        , div []
+            [ "Filters: " ++ (List.length model.filters |> String.fromInt) |> text ]
+        , div []
+            [ "Names: " ++ (List.length model.matching |> String.fromInt) ++ " of " ++ (List.length model.all |> String.fromInt) |> text ]
+        , textarea [ style "height" "50vh" ]
+            [ String.join "\n" model.matching |> text ]
         ]

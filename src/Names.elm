@@ -1,4 +1,4 @@
-module Names exposing (Filter(..), Name, check, matchingAll)
+module Names exposing (Filter(..), Name, check, matchingAll, toFilters)
 
 import Utils exposing (isOk)
 
@@ -15,6 +15,15 @@ type Filter
     = MinLength Int
     | MaxLength Int
     | StartsWith String
+
+
+
+{- Parse query to list of filters -}
+
+
+toFilters : String -> List (Result String Filter)
+toFilters query =
+    [ Ok (StartsWith query) ]
 
 
 
