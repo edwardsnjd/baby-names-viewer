@@ -38,7 +38,7 @@ toFilters query =
             []
 
         _ ->
-            [ Ok (StartsWith trimmed) ]
+            [ Ok (StartsWithOneOf [ Simple trimmed ]) ]
 
 
 

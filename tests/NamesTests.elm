@@ -84,10 +84,20 @@ suite =
                 \strs -> matchingAll [ lengthAtLeastFour, lengthAtMostFour ] strs |> assertAll (isExactly 4)
             ]
         , describe "toFilters"
-            [ test "ignores leading trailing whitespace" <|
-                \t -> List.map toFilters [ "", " ", "         " ]
-                    |> List.map (List.filterMap Result.toMaybe)
-                    |> assertAll2 (\l -> List.length l == 0) "Did not work"
+            [ describe "whitespace"
+                [ test "empty string maps to empty list" <|
+                    \_ -> toFilters "" |> Expect.equal []
+                , test "space maps to empty list" <|
+                    \_ -> toFilters " " |> Expect.equal []
+                , test "spaces maps to empty list" <|
+                    \_ -> toFilters "     " |> Expect.equal []
+                , test "single character maps to starts with" <|
+                    \_ -> toFilters "A" |> List.filterMap Result.toMaybe |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
+                , test "leading space before single character maps to starts with" <|
+                    \_ -> toFilters " A" |> List.filterMap Result.toMaybe |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
+                , test "trailing space after single character maps to starts with" <|
+                    \_ -> toFilters "A " |> List.filterMap Result.toMaybe |> Expect.equal [ StartsWithOneOf [ Simple "A" ] ]
+                ]
             ]
         ]
 
@@ -117,7 +127,6 @@ assertAll predicate values =
 
     else
         Expect.fail (String.join "\n" failures)
-
 
 
 assertAll2 : (a -> Bool) -> String -> List a -> Expect.Expectation
