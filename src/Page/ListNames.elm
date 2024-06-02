@@ -66,7 +66,8 @@ view model =
                 , value model.query
                 , onInput UpdateQuery
                 , style "font-size" "1.5em"
-                , placeholder "startswith:A min:4 max:10"
+                , style "width" "100%"
+                , placeholder "startswith:A endswith:a min:4 max:10"
                 ]
                 []
             , p [ style "color" "grey" ]
@@ -79,6 +80,9 @@ view model =
                 ([ ( "startswith:{prefix}", "Starts with {prefix}" )
                  , ( "startswith:{prefix1},{prefix2},...", "Starts with either {prefix1} or {prefix2} or any other prefixes" )
                  , ( "startswith:{from}-{to},...", "Starts between {from} and {to}, or any other supplied prefixes" )
+                 , ( "endswith:{suffix}", "Ends with {suffix}" )
+                 , ( "endswith:{suffix1},{suffix2},...", "Ends with either {suffix1} or {suffix2} or any other suffixes" )
+                 , ( "endswith:{from}-{to},...", "Ends between {from} and {to}, or any other supplied suffixes" )
                  , ( "min:{length}", "Has at least {length} letters" )
                  , ( "max:{length}", "Has at most {length} letters" )
                  ]
