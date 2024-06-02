@@ -101,6 +101,8 @@ suite =
                     \_ -> toFilters "min:42" |> Expect.equal [ MinLength 42 ]
                 , test "trailing space" <|
                     \_ -> toFilters "min:42 " |> Expect.equal [ MinLength 42 ]
+                , test "ignore case of key" <|
+                    \_ -> toFilters "MiN:42 " |> Expect.equal [ MinLength 42 ]
                 ]
             , describe "max:???"
                 [ test "empty" <|
@@ -117,6 +119,8 @@ suite =
                     \_ -> toFilters "max:42" |> Expect.equal [ MaxLength 42 ]
                 , test "trailing space" <|
                     \_ -> toFilters "max:42 " |> Expect.equal [ MaxLength 42 ]
+                , test "ignore case of key" <|
+                    \_ -> toFilters "MaX:42 " |> Expect.equal [ MaxLength 42 ]
                 ]
             , describe "startswith:???"
                 [ test "empty" <|
@@ -133,6 +137,8 @@ suite =
                     \_ -> toFilters "startswith:A,C" |> Expect.equal [ StartsWithOneOf [ Simple "A", Simple "C" ] ]
                 , test "range" <|
                     \_ -> toFilters "startswith:A-C" |> Expect.equal [ StartsWithOneOf [ Range "A" "C" ] ]
+                , test "ignore case of key" <|
+                    \_ -> toFilters "StArTswITH:A-C" |> Expect.equal [ StartsWithOneOf [ Range "A" "C" ] ]
                 ]
             , describe "combinations"
                 [ test "min, max, then start" <|

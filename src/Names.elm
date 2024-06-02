@@ -37,14 +37,19 @@ toFilters query =
 toFilter : String -> Maybe Filter
 toFilter term =
     case String.split ":" term of
-        [ "min", t ] ->
-            toMinLength t
+        [ k, t ] ->
+            case String.toLower k of
+                "min" ->
+                    toMinLength t
 
-        [ "max", t ] ->
-            toMaxLength t
+                "max" ->
+                    toMaxLength t
 
-        [ "startswith", t ] ->
-            toStartsWithOneOf t
+                "startswith" ->
+                    toStartsWithOneOf t
+
+                _ ->
+                    Nothing
 
         _ ->
             Nothing
