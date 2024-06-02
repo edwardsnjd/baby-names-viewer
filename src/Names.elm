@@ -16,6 +16,7 @@ type Filter
     | MaxLength Int
     | StartsWithOneOf (List StringSpec)
     | EndsWithOneOf (List StringSpec)
+    | Not Filter
 
 
 type StringSpec
@@ -51,6 +52,18 @@ toFilter term =
 
                 "endswith" ->
                     toEndsWithOneOf t
+
+                "!min" ->
+                    toMinLength t |> Maybe.map Not
+
+                "!max" ->
+                    toMaxLength t |> Maybe.map Not
+
+                "!startswith" ->
+                    toStartsWithOneOf t |> Maybe.map Not
+
+                "!endswith" ->
+                    toEndsWithOneOf t |> Maybe.map Not
 
                 _ ->
                     Nothing
@@ -212,3 +225,11 @@ check filter name =
 
             else
                 Err "Name did not end with right suffix"
+
+        Not childFilter ->
+            case check childFilter name of
+                Ok _ ->
+                    Err "Removed"
+
+                Err _ ->
+                    Ok name

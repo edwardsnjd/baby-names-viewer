@@ -78,6 +78,14 @@ suite =
                 , fuzz namesEndingWithD "rejects ...D" <|
                     \str -> check endsWithOneOfAtoC str |> assertError "Name did not end with right suffix"
                 ]
+            , describe "Not MinLength 4"
+                [ fuzz shortNames "accepts < 4" <|
+                    \str -> check notLengthAtLeastFour str |> Expect.ok
+                , fuzz namesOfFour "rejects == 4" <|
+                    \str -> check notLengthAtLeastFour str |> assertError "Removed"
+                , fuzz longNames "rejects > 4" <|
+                    \str -> check notLengthAtLeastFour str |> assertError "Removed"
+                ]
             ]
         , describe "matchingAll"
             [ fuzz shortNames "can limit max length" <|
@@ -186,6 +194,16 @@ suite =
                 , test "ignore case of key" <|
                     \_ -> toFilters "EnDsWiTh:A-C" |> Expect.equal [ EndsWithOneOf [ Range "A" "C" ] ]
                 ]
+            , describe "!???:???"
+                [ test "!max" <|
+                    \_ -> toFilters "!max:42" |> Expect.equal [ Not (MaxLength 42) ]
+                , test "!min" <|
+                    \_ -> toFilters "!min:42" |> Expect.equal [ Not (MinLength 42) ]
+                , test "!startswith" <|
+                    \_ -> toFilters "!startswith:A" |> Expect.equal [ Not (StartsWithOneOf [ Simple "A" ]) ]
+                , test "!endswith" <|
+                    \_ -> toFilters "!endswith:A" |> Expect.equal [ Not (EndsWithOneOf [ Simple "A" ]) ]
+                ]
             , describe "combinations"
                 [ test "min, max, then start" <|
                     \_ -> toFilters "min:4 max:10 startswith:A" |> Expect.equal [ MinLength 4, MaxLength 10, StartsWithOneOf [ Simple "A" ] ]
@@ -194,6 +212,7 @@ suite =
                 ]
             ]
         ]
+
 
 
 -- Utils
@@ -385,6 +404,7 @@ startsWithOneOfAtoC : Filter
 startsWithOneOfAtoC =
     StartsWithOneOf [ Range "A" "C" ]
 
+
 endsWithOneOfA : Filter
 endsWithOneOfA =
     EndsWithOneOf [ Simple "A" ]
@@ -394,7 +414,12 @@ endsWithOneOfAorC : Filter
 endsWithOneOfAorC =
     EndsWithOneOf [ Simple "A", Simple "C" ]
 
+
 endsWithOneOfAtoC : Filter
 endsWithOneOfAtoC =
     EndsWithOneOf [ Range "A" "C" ]
 
+
+notLengthAtLeastFour : Filter
+notLengthAtLeastFour =
+    Not (MinLength 4)

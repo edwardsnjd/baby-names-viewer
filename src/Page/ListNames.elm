@@ -67,7 +67,7 @@ view model =
                 , onInput UpdateQuery
                 , style "font-size" "1.5em"
                 , style "width" "100%"
-                , placeholder "startswith:A endswith:a min:4 max:10"
+                , placeholder "startswith:A !endswith:ie,y min:4 max:10"
                 ]
                 []
             , p [ style "color" "grey" ]
@@ -85,6 +85,7 @@ view model =
                  , ( "endswith:{from}-{to},...", "Ends between {from} and {to}, or any other supplied suffixes" )
                  , ( "min:{length}", "Has at least {length} letters" )
                  , ( "max:{length}", "Has at most {length} letters" )
+                 , ( "!{key}:{value}", "Does not match whatever the key and value would match" )
                  ]
                     |> List.concatMap
                         (\t ->
@@ -108,6 +109,13 @@ view model =
                     , text " is good but "
                     , span [ style "color" "red" ] [ text "`startswith:b`" ]
                     , text " will not work."
+                    ]
+                , li []
+                    [ text "Use the `!` when it's easier to say what you don't want instead of what you do want e.g."
+                    , span [ style "color" "green" ] [ text "`!startswith:J,W,Y`" ]
+                    , text " is good because it's shorter than "
+                    , span [ style "color" "orange" ] [ text "`startswith:A-I,K-V,X,Z`" ]
+                    , text "."
                     ]
                 ]
             ]
@@ -133,8 +141,11 @@ view model =
 viewFilter : Filter -> Html Msg
 viewFilter filter =
     let
-        label =
-            case filter of
+        label f =
+            case f of
+                Not nested ->
+                    "NOT " ++ (label nested)
+
                 MinLength min ->
                     "Min length: " ++ String.fromInt min
 
@@ -171,4 +182,4 @@ viewFilter filter =
                     in
                     "Ends with one of: " ++ String.join ", OR " specLabels
     in
-    li [] [ text label ]
+    li [] [ text (label filter) ]
