@@ -69,9 +69,11 @@ view model =
                 , placeholder "startswith:A min:4 max:10"
                 ]
                 []
+            , p [ style "color" "grey" ]
+                [ text "The matched names will filter as you type.  If it's not working, check the gotchas!" ]
             ]
         , details [ style "color" "grey" ]
-            [ summary [] [ text "Supported filters" ]
+            [ summary [] [ text "ℹ️  Supported filters and gotchas" ]
             , dl
                 []
                 ([ ( "startswith:{prefix}", "Starts with {prefix}" )
@@ -87,6 +89,23 @@ view model =
                             ]
                         )
                 )
+            , p [] [ text "Gotchas:" ]
+            , ul []
+                [ li []
+                    [ text "No spaces between the search key, the colon, and the search value e.g. "
+                    , span [ style "color" "green" ] [ text "`min:4`" ]
+                    , text " is good but "
+                    , span [ style "color" "red" ] [ text "`min : 4`" ]
+                    , text " will not work."
+                    ]
+                , li []
+                    [ text "Name prefixes are case sensitive e.g. "
+                    , span [ style "color" "green" ] [ text "`startswith:B`" ]
+                    , text " is good but "
+                    , span [ style "color" "red" ] [ text "`startswith:b`" ]
+                    , text " will not work."
+                    ]
+                ]
             ]
         , h2 [] [ text "Filters (from query):" ]
         , if List.length model.filters == 0 then
