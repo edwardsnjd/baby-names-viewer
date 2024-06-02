@@ -52,6 +52,32 @@ suite =
                 , fuzz namesStartingWithD "rejects D..." <|
                     \str -> check startsWithOneOfAtoC str |> assertError "Name did not start with right prefix"
                 ]
+            , describe "EndsWithOneOf A"
+                [ fuzz namesEndingWithA "accepts ...A" <|
+                    \str -> check endsWithOneOfA str |> Expect.ok
+                , fuzz namesEndingWithB "rejects ...B" <|
+                    \str -> check endsWithOneOfA str |> assertError "Name did not end with right suffix"
+                ]
+            , describe "EndsWithOneOf A or C"
+                [ fuzz namesEndingWithA "accepts ...A" <|
+                    \str -> check endsWithOneOfAorC str |> Expect.ok
+                , fuzz namesEndingWithB "rejects ...B" <|
+                    \str -> check endsWithOneOfAorC str |> assertError "Name did not end with right suffix"
+                , fuzz namesEndingWithC "accepts ...C" <|
+                    \str -> check endsWithOneOfAorC str |> Expect.ok
+                , fuzz namesEndingWithD "rejects ...D" <|
+                    \str -> check endsWithOneOfAorC str |> assertError "Name did not end with right suffix"
+                ]
+            , describe "EndsWithOneOf A to C"
+                [ fuzz namesEndingWithA "accepts ...A" <|
+                    \str -> check endsWithOneOfAtoC str |> Expect.ok
+                , fuzz namesEndingWithB "accepts ...B" <|
+                    \str -> check endsWithOneOfAtoC str |> Expect.ok
+                , fuzz namesEndingWithC "accepts ...C" <|
+                    \str -> check endsWithOneOfAtoC str |> Expect.ok
+                , fuzz namesEndingWithD "rejects ...D" <|
+                    \str -> check endsWithOneOfAtoC str |> assertError "Name did not end with right suffix"
+                ]
             ]
         , describe "matchingAll"
             [ fuzz shortNames "can limit max length" <|
@@ -68,6 +94,8 @@ suite =
                 \str -> matchingAll [ startsWithOneOfA ] [ str ] |> Expect.equal [ str ]
             , fuzz namesStartingWithB "rejects B..." <|
                 \str -> matchingAll [ startsWithOneOfA ] [ str ] |> Expect.equal []
+            , fuzz namesEndingWithB "rejects ...B" <|
+                \str -> matchingAll [ endsWithOneOfA ] [ str ] |> Expect.equal []
             ]
         , describe "matchingAll fuzzing"
             [ fuzz rangeOfNames "can limit min length" <|
@@ -140,6 +168,24 @@ suite =
                 , test "ignore case of key" <|
                     \_ -> toFilters "StArTswITH:A-C" |> Expect.equal [ StartsWithOneOf [ Range "A" "C" ] ]
                 ]
+            , describe "endswith:???"
+                [ test "empty" <|
+                    \_ -> toFilters "endswith:" |> Expect.equal []
+                , test "space after prefix" <|
+                    \_ -> toFilters "endswith: " |> Expect.equal []
+                , test "space before term" <|
+                    \_ -> toFilters "endswith: A" |> Expect.equal []
+                , test "single character" <|
+                    \_ -> toFilters "endswith:A" |> Expect.equal [ EndsWithOneOf [ Simple "A" ] ]
+                , test "trailing space" <|
+                    \_ -> toFilters "endswith:A " |> Expect.equal [ EndsWithOneOf [ Simple "A" ] ]
+                , test "pair" <|
+                    \_ -> toFilters "endswith:A,C" |> Expect.equal [ EndsWithOneOf [ Simple "A", Simple "C" ] ]
+                , test "range" <|
+                    \_ -> toFilters "endswith:A-C" |> Expect.equal [ EndsWithOneOf [ Range "A" "C" ] ]
+                , test "ignore case of key" <|
+                    \_ -> toFilters "EnDsWiTh:A-C" |> Expect.equal [ EndsWithOneOf [ Range "A" "C" ] ]
+                ]
             , describe "combinations"
                 [ test "min, max, then start" <|
                     \_ -> toFilters "min:4 max:10 startswith:A" |> Expect.equal [ MinLength 4, MaxLength 10, StartsWithOneOf [ Simple "A" ] ]
@@ -148,7 +194,6 @@ suite =
                 ]
             ]
         ]
-
 
 
 -- Utils
@@ -262,6 +307,11 @@ namesStartingWith prefix =
     stringOfLength 4 |> Fuzz.map (String.append prefix)
 
 
+namesEndingWith : String -> Fuzz.Fuzzer String
+namesEndingWith suffix =
+    stringOfLength 4 |> Fuzz.map (\str -> String.append str suffix)
+
+
 namesStartingWithA : Fuzz.Fuzzer String
 namesStartingWithA =
     namesStartingWith "A"
@@ -280,6 +330,26 @@ namesStartingWithC =
 namesStartingWithD : Fuzz.Fuzzer String
 namesStartingWithD =
     namesStartingWith "D"
+
+
+namesEndingWithA : Fuzz.Fuzzer String
+namesEndingWithA =
+    namesEndingWith "A"
+
+
+namesEndingWithB : Fuzz.Fuzzer String
+namesEndingWithB =
+    namesEndingWith "B"
+
+
+namesEndingWithC : Fuzz.Fuzzer String
+namesEndingWithC =
+    namesEndingWith "C"
+
+
+namesEndingWithD : Fuzz.Fuzzer String
+namesEndingWithD =
+    namesEndingWith "D"
 
 
 rangeOfNames : Fuzz.Fuzzer (List String)
@@ -314,3 +384,17 @@ startsWithOneOfAorC =
 startsWithOneOfAtoC : Filter
 startsWithOneOfAtoC =
     StartsWithOneOf [ Range "A" "C" ]
+
+endsWithOneOfA : Filter
+endsWithOneOfA =
+    EndsWithOneOf [ Simple "A" ]
+
+
+endsWithOneOfAorC : Filter
+endsWithOneOfAorC =
+    EndsWithOneOf [ Simple "A", Simple "C" ]
+
+endsWithOneOfAtoC : Filter
+endsWithOneOfAtoC =
+    EndsWithOneOf [ Range "A" "C" ]
+

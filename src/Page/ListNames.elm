@@ -151,5 +151,20 @@ viewFilter filter =
                             List.map toLabel specs
                     in
                     "Starts with one of: " ++ String.join ", OR " specLabels
+
+                EndsWithOneOf specs ->
+                    let
+                        toLabel spec =
+                            case spec of
+                                Simple str ->
+                                    str
+
+                                Range from to ->
+                                    from ++ " to " ++ to
+
+                        specLabels =
+                            List.map toLabel specs
+                    in
+                    "Ends with one of: " ++ String.join ", OR " specLabels
     in
     li [] [ text label ]

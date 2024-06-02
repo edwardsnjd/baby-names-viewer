@@ -15,6 +15,7 @@ type Filter
     = MinLength Int
     | MaxLength Int
     | StartsWithOneOf (List StringSpec)
+    | EndsWithOneOf (List StringSpec)
 
 
 type StringSpec
@@ -48,6 +49,9 @@ toFilter term =
                 "startswith" ->
                     toStartsWithOneOf t
 
+                "endswith" ->
+                    toEndsWithOneOf t
+
                 _ ->
                     Nothing
 
@@ -78,6 +82,19 @@ toStartsWithOneOf term =
 
     else
         Just (StartsWithOneOf specs)
+
+
+toEndsWithOneOf : String -> Maybe Filter
+toEndsWithOneOf term =
+    let
+        specs =
+            String.split "," term |> List.filterMap toSpec
+    in
+    if List.length specs == 0 then
+        Nothing
+
+    else
+        Just (EndsWithOneOf specs)
 
 
 toSpec : String -> Maybe StringSpec
@@ -163,3 +180,35 @@ check filter name =
 
             else
                 Err "Name did not start with right prefix"
+
+        EndsWithOneOf specs ->
+            let
+                -- NOTE: This is accepts ANY of the given suffixes
+                anySuffixMatches =
+                    List.any
+                        (\spec ->
+                            case spec of
+                                Simple str ->
+                                    String.endsWith str name
+
+                                Range from to ->
+                                    let
+                                        reversedName =
+                                            String.reverse name
+
+                                        reversedFrom =
+                                            String.reverse from
+
+                                        reversedTo =
+                                            String.reverse to
+                                    in
+                                    -- NOTE: Can't simply compare because longer strings sort after prefix
+                                    reversedFrom <= reversedName && String.slice 0 (String.length reversedTo) reversedName <= reversedTo
+                        )
+                        specs
+            in
+            if anySuffixMatches then
+                Ok name
+
+            else
+                Err "Name did not end with right suffix"
