@@ -70,10 +70,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div
-        [ style "padding" "1em"
-        , style "font-size" "120%"
-        ]
+    section []
         [ h2 [] [ text "Query:" ]
         , p []
             [ input
@@ -148,6 +145,7 @@ view model =
             , style "width" "100%"
             , style "font-size" "0.9em"
             , style "overflow" "scroll"
+            , readonly True
             ]
             [ String.join "\n" model.matching |> text ]
         ]
@@ -159,7 +157,7 @@ viewFilter filter =
         label f =
             case f of
                 Not nested ->
-                    "NOT " ++ (label nested)
+                    "NOT " ++ label nested
 
                 MinLength min ->
                     "Min length: " ++ String.fromInt min

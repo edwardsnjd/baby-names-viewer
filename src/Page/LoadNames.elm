@@ -139,7 +139,6 @@ view model =
                     [ text "Load" ]
                 ]
             ]
-        , h2 [] [ text "Result:" ]
         , p [ style "color" "grey" ]
             [ (List.length model.loadedNames |> String.fromInt) ++ " names loaded." |> text ]
         , p [ style "color" "red" ]
