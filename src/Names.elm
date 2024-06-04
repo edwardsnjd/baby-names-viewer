@@ -1,7 +1,5 @@
 module Names exposing (Filter(..), Name, StringSpec(..), check, matchingAll, toFilters)
 
-import Utils exposing (isOk)
-
 
 type alias Name =
     String
@@ -233,3 +231,13 @@ check filter name =
 
                 Err _ ->
                     Ok name
+
+
+isOk : Result a b -> Bool
+isOk result =
+    case result of
+        Ok _ ->
+            True
+
+        _ ->
+            False
