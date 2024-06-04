@@ -1,4 +1,4 @@
-module Page.LoadNames exposing (Model, Msg, init, update, view)
+module Page.LoadNames exposing (Model, Msg, Outcome(..), init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -17,6 +17,10 @@ type Msg
     = UpdateUrl String
     | FetchUrl
     | FetchReceived (Result Http.Error String)
+
+
+type Outcome
+    = UpdatedNames (List String)
 
 
 femaleNames : String
@@ -39,20 +43,28 @@ init _ =
     )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+
+{- Special update function that optionally returns an outcome for other modules to respond to. -}
+
+
+update : Msg -> Model -> ( Model, Cmd Msg, Maybe Outcome )
 update msg model =
     case msg of
         UpdateUrl url ->
-            ( { model | url = url }, Cmd.none )
+            ( { model | url = url }, Cmd.none, Nothing )
 
         FetchUrl ->
-            ( { model | loadedNames = [], errorMessage = Nothing }, getUrl model.url )
+            ( { model | loadedNames = [], errorMessage = Nothing }, getUrl model.url, Just (UpdatedNames []) )
 
-        FetchReceived (Ok names) ->
-            ( { model | loadedNames = String.words names, errorMessage = Nothing }, Cmd.none )
+        FetchReceived (Ok str) ->
+            let
+                names =
+                    String.words str
+            in
+            ( { model | loadedNames = names, errorMessage = Nothing }, Cmd.none, Just (UpdatedNames names) )
 
         FetchReceived (Err error) ->
-            ( { model | errorMessage = Just (buildErrorMessage error) }, Cmd.none )
+            ( { model | errorMessage = Just (buildErrorMessage error) }, Cmd.none, Nothing )
 
 
 getUrl : String -> Cmd Msg

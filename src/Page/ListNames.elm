@@ -1,6 +1,5 @@
-module Page.ListNames exposing (Model, Msg, init, update, view)
+module Page.ListNames exposing (Model, Msg, init, update, updateNames, view)
 
-import BoysNames exposing (all)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -17,17 +16,27 @@ type alias Model =
 
 type Msg
     = UpdateQuery String
+    | UpdateNames (List Name)
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { all = all
+    ( { all = []
       , query = ""
       , filters = []
-      , matching = matchingAll [] all
+      , matching = matchingAll [] []
       }
     , Cmd.none
     )
+
+
+
+{- Special update function that other modules to update this without exposing Msg constructors. -}
+
+
+updateNames : List Name -> Model -> ( Model, Cmd Msg )
+updateNames names model =
+    update (UpdateNames names) model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -43,7 +52,13 @@ update msg model =
                     { model
                         | query = query
                         , filters = filters
-                        , matching = matchingAll filters all
+                        , matching = matchingAll filters model.all
+                    }
+
+                UpdateNames all ->
+                    { model
+                        | all = all
+                        , matching = matchingAll model.filters all
                     }
     in
     ( updated, Cmd.none )
