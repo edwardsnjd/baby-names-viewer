@@ -33,13 +33,14 @@ maleNames =
     "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/names-male.csv"
 
 
-init : () -> ( Model, Cmd Msg )
+init : () -> ( Model, Cmd Msg, Maybe Outcome )
 init _ =
     ( { loadedNames = []
       , url = femaleNames
       , errorMessage = Nothing
       }
     , Cmd.none
+    , Nothing
     )
 
 

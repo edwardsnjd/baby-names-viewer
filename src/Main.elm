@@ -31,86 +31,95 @@ type alias Model =
 
 
 type Msg
-    = LoadNames LoadNames.Msg
-    | ListNames ListNames.Msg
+    = LoadNamesMsg LoadNames.Msg
+    | ListNamesMsg ListNames.Msg
 
 
 type alias Update =
     ( Model, Cmd Msg )
 
 
+type alias ListNamesUpdate =
+    ( ListNames.Model, Cmd ListNames.Msg )
+
+
+type alias LoadNamesUpdate =
+    ( LoadNames.Model, Cmd LoadNames.Msg, Maybe LoadNames.Outcome )
+
+
+
+-- Build Elm update
+
+
 init : () -> Update
 init _ =
-    let
-        ( loadNamesModel, loadNamesCmd ) =
-            LoadNames.init ()
-
-        ( listNamesModel, listNamesCmd ) =
-            ListNames.init ()
-    in
-    ( { loadNames = loadNamesModel
-      , listNames = listNamesModel
-      }
-    , Cmd.batch
-        [ loadNamesCmd |> Cmd.map LoadNames
-        , listNamesCmd |> Cmd.map ListNames
-        ]
-    )
+    mergeAll
+        (LoadNames.init ())
+        (ListNames.init ())
 
 
 update : Msg -> Model -> Update
 update wrappedMsg model =
     case wrappedMsg of
-        LoadNames msg ->
-            let
-                ( result, maybeOutcome ) =
-                    loadNamesUpdate msg model
-            in
-            maybeOutcome
-                |> Maybe.map (handleOutcome result)
-                |> Maybe.withDefault result
+        LoadNamesMsg msg ->
+            loadNamesUpdate ( model, Cmd.none ) msg
 
-        ListNames msg ->
-            listNamesUpdate msg model
+        ListNamesMsg msg ->
+            listNamesUpdate ( model, Cmd.none ) msg
 
 
-loadNamesUpdate : LoadNames.Msg -> Model -> ( Update, Maybe LoadNames.Outcome )
-loadNamesUpdate msg model =
-    let
-        ( updated, cmd, outcome ) =
-            LoadNames.update msg model.loadNames
-    in
-    ( ( { model | loadNames = updated }, cmd |> Cmd.map LoadNames ), outcome )
+loadNamesUpdate : Update -> LoadNames.Msg -> Update
+loadNamesUpdate ( model, cmd ) msg =
+    LoadNames.update msg model.loadNames
+        |> mergeLoadNames ( model, cmd )
 
 
-handleOutcome : Update -> LoadNames.Outcome -> Update
-handleOutcome ( model, cmd ) outcome =
+handleOutcome : Maybe LoadNames.Outcome -> Update -> Update
+handleOutcome outcome result =
     case outcome of
-        LoadNames.UpdatedNames names ->
-            listNamesUpdateNames names model |> prependCmd cmd
+        Just (LoadNames.UpdatedNames names) ->
+            listNamesUpdateNames result names
+
+        _ ->
+            result
 
 
-listNamesUpdate : ListNames.Msg -> Model -> Update
-listNamesUpdate msg model =
-    let
-        ( updated, cmd ) =
-            ListNames.update msg model.listNames
-    in
-    ( { model | listNames = updated }, Cmd.map ListNames cmd )
+listNamesUpdate : Update -> ListNames.Msg -> Update
+listNamesUpdate ( model, cmd ) msg =
+    ListNames.update msg model.listNames
+        |> mergeListNames ( model, cmd )
 
 
-listNamesUpdateNames : List String -> Model -> Update
-listNamesUpdateNames names model =
-    let
-        ( updated, cmd ) =
-            ListNames.updateNames names model.listNames
-    in
-    ( { model | listNames = updated }, Cmd.map ListNames cmd )
+listNamesUpdateNames : Update -> List String -> Update
+listNamesUpdateNames ( model, cmd ) names =
+    ListNames.updateNames names model.listNames
+        |> mergeListNames ( model, cmd )
 
 
-prependCmd : Cmd Msg -> Update -> Update
-prependCmd firstCmd ( model, secondCmd ) =
-    ( model, Cmd.batch [ firstCmd, secondCmd ] )
+
+-- Build update response from child responses
+
+
+mergeLoadNames : Update -> LoadNamesUpdate -> Update
+mergeLoadNames ( model, cmd ) ( childModel, childCmd, outcome ) =
+    ( { model | loadNames = childModel }
+    , Cmd.batch [ cmd, Cmd.map LoadNamesMsg childCmd ]
+    )
+        |> handleOutcome outcome
+
+
+mergeListNames : Update -> ListNamesUpdate -> Update
+mergeListNames ( model, cmd ) ( childModel, childCmd ) =
+    ( { model | listNames = childModel }
+    , Cmd.batch [ cmd, Cmd.map ListNamesMsg childCmd ]
+    )
+
+
+mergeAll : LoadNamesUpdate -> ListNamesUpdate -> Update
+mergeAll ( loadNamesModel, loadNamesCmd, _ ) ( listNamesModel, listNamesCmd ) =
+    ( { loadNames = loadNamesModel, listNames = listNamesModel }
+    , Cmd.batch [ Cmd.map LoadNamesMsg loadNamesCmd, Cmd.map ListNamesMsg listNamesCmd ]
+    )
 
 
 
@@ -123,6 +132,6 @@ view model =
         [ style "padding" "1em"
         , style "font-size" "120%"
         ]
-        [ LoadNames.view model.loadNames |> Html.map LoadNames
-        , ListNames.view model.listNames |> Html.map ListNames
+        [ LoadNames.view model.loadNames |> Html.map LoadNamesMsg
+        , ListNames.view model.listNames |> Html.map ListNamesMsg
         ]
