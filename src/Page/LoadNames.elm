@@ -23,20 +23,31 @@ type Outcome
     = UpdatedNames (List String)
 
 
-femaleNames : String
-femaleNames =
-    "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/names-female.csv"
+type alias NameGroup =
+    { female : String, male : String }
 
 
-maleNames : String
-maleNames =
-    "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/names-male.csv"
+nameUrls : { us : NameGroup, welsh : NameGroup, scottish : NameGroup }
+nameUrls =
+    { scottish =
+        { female = "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/scottish-names-female.csv"
+        , male = "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/scottish-names-male.csv"
+        }
+    , us =
+        { female = "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/us-names-female.csv"
+        , male = "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/us-names-male.csv"
+        }
+    , welsh =
+        { female = "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/welsh-names-female.csv"
+        , male = "https://raw.githubusercontent.com/edwardsnjd/baby-names/main/welsh-names-male.csv"
+        }
+    }
 
 
 init : () -> ( Model, Cmd Msg, Maybe Outcome )
 init _ =
     ( { loadedNames = []
-      , url = femaleNames
+      , url = nameUrls.us.female
       , errorMessage = Nothing
       }
     , Cmd.none
@@ -112,12 +123,18 @@ view model =
                     , style "font-size" "1.5em"
                     , style "width" "100%"
                     ]
-                    [ option
-                        [ value femaleNames ]
-                        [ text "Female names" ]
-                    , option
-                        [ value maleNames ]
-                        [ text "Male names" ]
+                    [ optgroup
+                        [ attribute "label" "Female" ]
+                        [ viewUrlOption model nameUrls.scottish.female "Scottish female names"
+                        , viewUrlOption model nameUrls.us.female "US female names"
+                        , viewUrlOption model nameUrls.welsh.female "Welsh female names"
+                        ]
+                    , optgroup
+                        [ attribute "label" "Male" ]
+                        [ viewUrlOption model nameUrls.scottish.male "Scottish male names"
+                        , viewUrlOption model nameUrls.welsh.male "Welsh male names"
+                        , viewUrlOption model nameUrls.us.male "US male names"
+                        ]
                     ]
                 ]
             , p []
@@ -127,7 +144,7 @@ view model =
                     , onInput UpdateUrl
                     , style "font-size" "1.5em"
                     , style "width" "100%"
-                    , placeholder femaleNames
+                    , placeholder nameUrls.us.female
                     ]
                     []
                 ]
@@ -145,3 +162,10 @@ view model =
         , p [ style "color" "red" ]
             [ Maybe.withDefault "" model.errorMessage |> text ]
         ]
+
+
+viewUrlOption : Model -> String -> String -> Html msg
+viewUrlOption model url name =
+    option
+        [ value url, selected (model.url == url) ]
+        [ text name ]
