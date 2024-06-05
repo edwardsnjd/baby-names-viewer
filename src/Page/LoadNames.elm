@@ -132,8 +132,8 @@ view model =
                     , optgroup
                         [ attribute "label" "Male" ]
                         [ viewUrlOption model nameUrls.scottish.male "Scottish male names"
-                        , viewUrlOption model nameUrls.welsh.male "Welsh male names"
                         , viewUrlOption model nameUrls.us.male "US male names"
+                        , viewUrlOption model nameUrls.welsh.male "Welsh male names"
                         ]
                     ]
                 ]
